@@ -2,9 +2,12 @@ const { Server } = require("socket.io");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
+const aiService = require("../services/ai.service");
+
 function initSocketServer(httpServer) {
   const io = new Server(httpServer);
 
+  //socket auth middelware connection olny establishes when user is authenticated.
   io.use(async (socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
     if (!cookies.token) {
@@ -23,6 +26,19 @@ function initSocketServer(httpServer) {
   io.on("connection", (socket) => {
     console.log("new socket connection:", socket.id);
     console.log("user:", socket.user);
+
+    socket.on("ai-message", async (payload) => {
+      /* payload = {
+      chat:chatId
+      content:"hellow ai"
+      } */
+      console.log(payload);
+      const response = await aiService.generateResponse(payload.content);
+      socket.emit("ai-response", {
+        content: response,
+        chat: payload.chat,
+      });
+    });
   });
 }
 
