@@ -1,8 +1,11 @@
 const dotenv = require("dotenv").config();
 const app = require("./src/app");
-const connectToDB = require("./src/db/db")
+const connectToDB = require("./src/db/db");
+const { initSocketServer } = require("./src/sockets/socket.server");
+const { createServer } = require("http");
 
-connectToDB();
-app.listen(3000, (req, res) => {
-  console.log("server listining on port 3000");
-});
+httpServer = createServer(app); //created a http server via passing app on create server
+initSocketServer(httpServer); //passed the server instance to initailze socket.io server
+connectToDB(); //connection to data base
+
+httpServer.listen(3000); //application http server starts listning here
