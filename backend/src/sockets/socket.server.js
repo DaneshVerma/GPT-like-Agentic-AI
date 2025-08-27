@@ -40,9 +40,15 @@ function initSocketServer(httpServer) {
         role: "user",
       });
 
-      const chatHistory = await messageModel.find({
-        chat: payload.chat,
-      });
+      const chatHistory = (
+        await messageModel
+          .find({
+            chat: payload.chat,
+          })
+          .sort({ createdAt: -1 })
+          .limit(20)
+          .lean()
+      ).reverse();
 
       const history = chatHistory.map((item) => {
         return {
