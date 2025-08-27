@@ -3,6 +3,7 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
 const aiService = require("../services/ai.service");
+const { messageModel } = require("../models/message.model");
 
 function initSocketServer(httpServer) {
   const io = new Server(httpServer);
@@ -33,7 +34,19 @@ function initSocketServer(httpServer) {
       content:"hellow ai"
       } */
       console.log(payload);
+      await messageModel.create({
+        chat: payload.chat,
+        user: socket.user._id,
+        content: payload.content,
+        role: "user",
+      });
       const response = await aiService.generateResponse(payload.content);
+      await messageModel.create({
+        chat: payload.chat,
+        user: socket.user._id,
+        content: response,
+        role: "model",
+      });
       socket.emit("ai-response", {
         content: response,
         chat: payload.chat,
