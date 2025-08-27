@@ -26,21 +26,32 @@ function initSocketServer(httpServer) {
 
   io.on("connection", (socket) => {
     console.log("new socket connection:", socket.id);
-    console.log("user:", socket.user);
 
     socket.on("ai-message", async (payload) => {
       /* payload = {
       chat:chatId
       content:"hellow ai"
       } */
-      console.log(payload);
+
       await messageModel.create({
         chat: payload.chat,
         user: socket.user._id,
         content: payload.content,
         role: "user",
       });
-      const response = await aiService.generateResponse(payload.content);
+
+      const chatHistory = await messageModel.find({
+        chat: payload.chat,
+      });
+
+      const history = chatHistory.map((item) => {
+        return {
+          role: item.role,
+          parts: [{ text: item.content }],
+        };
+      });
+
+      const response = await aiService.generateResponse(history);
       await messageModel.create({
         chat: payload.chat,
         user: socket.user._id,
