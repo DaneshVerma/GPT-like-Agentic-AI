@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
 const aiService = require("../services/ai.service");
 const { messageModel } = require("../models/message.model");
-const { createMemonry, queryMemory } = require("../services/vector.service");
+const { createMemonry } = require("../services/vector.service");
 
 function initSocketServer(httpServer) {
   const io = new Server(httpServer);
@@ -29,12 +29,8 @@ function initSocketServer(httpServer) {
     console.log("new socket connection:", socket.id);
 
     socket.on("ai-message", async (payload) => {
-      /* payload = {
-      chat:chatId
-      content:"hellow ai"
-      } */
-
-      await messageModel.create({
+      //saving input message
+      const message = await messageModel.create({
         chat: payload.chat,
         user: socket.user._id,
         content: payload.content,
@@ -42,13 +38,12 @@ function initSocketServer(httpServer) {
       });
 
       const vectores = await aiService.generateVector(payload.content);
-      console.log(vectores);
       await createMemonry({
-        vectores,
-        messageId: "23rfe32",
+        vectores: vectores,
+        messageId: message._id,
         metadata: {
           chat: payload.chat,
-          user: socket.user.id, 
+          user: socket.user.id,
         },
       });
 
@@ -69,12 +64,24 @@ function initSocketServer(httpServer) {
       });
       const response = await aiService.generateResponse(history);
 
-      // await messageModel.create({
-      //   chat: payload.chat,
-      //   user: socket.user._id,
-      //   content: response,
-      //   role: "model",
-      // });
+      //saving output message
+      const responseMessage = await messageModel.create({
+        chat: payload.chat,
+        user: socket.user._id,
+        content: response,
+        role: "model",
+      });
+      const responseVectors = await aiService.generateVector(response);
+
+      await createMemonry({
+        vectores: responseVectors,
+        messageId: responseMessage._id,
+        metadata: {
+          chat: payload.chat,
+          user: socket.user.id,
+        },
+      });
+
       socket.emit("ai-response", {
         content: response,
         chat: payload.chat,
