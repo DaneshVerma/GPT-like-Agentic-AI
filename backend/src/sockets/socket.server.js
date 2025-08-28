@@ -44,14 +44,14 @@ function initSocketServer(httpServer) {
         limit: 3,
         metadata: {},
       });
-      console.log(memory)
+
       await createMemonry({
         vectores: vectores,
         messageId: message._id,
         metadata: {
           chat: payload.chat,
           user: socket.user.id,
-          text:payload.content
+          text: payload.content,
         },
       });
 
@@ -64,13 +64,33 @@ function initSocketServer(httpServer) {
           .limit(20)
           .lean()
       ).reverse();
-      const history = chatHistory.map((item) => {
+
+      // short term memory
+      const stm = chatHistory.map((item) => {
         return {
           role: item.role,
           parts: [{ text: item.content }],
         };
       });
-      const response = await aiService.generateResponse(history);
+
+      // long term memory
+      const ltm = [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `
+          these are some previous messages from the chat use them to generate response
+          ${memory
+            .map((item) => {
+              return item.metadata.text;
+            })
+            .join("\n")}`,
+            },
+          ],
+        },
+      ];
+      const response = await aiService.generateResponse([...ltm, ...stm]);
 
       //saving output message
       const responseMessage = await messageModel.create({
@@ -87,7 +107,7 @@ function initSocketServer(httpServer) {
         metadata: {
           chat: payload.chat,
           user: socket.user.id,
-          text:response
+          text: response,
         },
       });
 
