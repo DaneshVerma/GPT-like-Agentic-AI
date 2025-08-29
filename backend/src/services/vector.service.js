@@ -6,7 +6,7 @@ const pc = new Pinecone({ apiKey: process.env.PINE_CONE_API_KEY });
 // Create a dense index with integrated embedding
 const chatGPTIndex = pc.index("gptlikagent");
 
-async function createMemonry({ vectores, messageId, metadata }) {
+async function createMemory({ vectores, messageId, metadata }) {
   await chatGPTIndex.upsert([
     {
       id: messageId,
@@ -22,11 +22,12 @@ async function queryMemory({ queryVector, limit = 5, metadata }) {
     topK: limit,
     filter: metadata ? { metadata } : undefined,
     includeMetadata: true,
+    
   });
   return data.matches;
 }
 
 module.exports = {
-  createMemonry,
+  createMemory,
   queryMemory,
 };
