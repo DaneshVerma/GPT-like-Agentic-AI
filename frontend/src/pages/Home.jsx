@@ -29,8 +29,6 @@ const Home = () => {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
   const [socket, setSocket] = useState(null);
 
-  const activeChat = chats.find((c) => c.id === activeChatId) || null;
-
   const [messages, setMessages] = useState([
     // {
     //   type: 'user',
@@ -46,7 +44,8 @@ const Home = () => {
     let title = window.prompt("Enter chat title:");
     if (!title) return;
     title = title.trim();
-    const response = axios.post(
+    console.log("Creating new chat with title:", title);
+    const response = await axios.post(
       "http://localhost:3000/api/chat",
       {
         title,
@@ -56,11 +55,22 @@ const Home = () => {
       }
     );
     console.log("Created new chat:", response.data);
-    dispatch(
-      startNewChat({ title: response.data.title, id: response.data.id })
-    );
+    dispatch(startNewChat({ title: response.data.chat.title, id: response.data.chat.id }));
     setSidebarOpen(false);
   };
+
+  //fatching chats
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/api/chat", { withCredentials: true })
+      .then((response) => {
+        console.log("Fetched chats:", response.data);
+        dispatch(setChats(response.data.chats));
+      })
+      .catch((error) => {
+        console.error("Error fetching chats:", error);
+      });
+  }, []);
 
   const sendMessage = async () => {
     const trimmed = input.trim();
@@ -97,10 +107,9 @@ const Home = () => {
   };
 
   const getMessages = async (chatId) => {
-    const response = await axios.get(
-      `https://cohort-1-project-chat-gpt.onrender.com/api/chat/messages/${chatId}`,
-      { withCredentials: true }
-    );
+    const response = await axios.get(`h/api/chat/messages/${chatId}`, {
+      withCredentials: true,
+    });
 
     console.log("Fetched messages:", response.data.messages);
 
