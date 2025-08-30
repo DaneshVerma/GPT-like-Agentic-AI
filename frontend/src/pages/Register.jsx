@@ -1,97 +1,95 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
-const Register = ({ setUser }) => {
+const Register = () => {
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
     email: "",
+    firstname: "",
+    lastname: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+  }
 
-  const handleSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const res = await axios.post("/api/auth/register", {
-        fullName: { firstName: form.firstName, lastName: form.lastName },
-        email: form.email,
-        password: form.password,
-      });
-      setUser(res.data.user);
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setSubmitting(true);
+    console.log(form);
+  }
 
   return (
-    <div className='max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg'>
-      <h2 className='text-2xl font-bold mb-6 text-center text-indigo-700'>
-        Register
-      </h2>
-      {error && (
-        <div className='bg-red-100 text-red-700 p-3 mb-4 rounded'>{error}</div>
-      )}
-      <form className='space-y-4' onSubmit={handleSubmit}>
-        <div className='flex gap-4'>
-          <input
-            type='text'
-            placeholder='First Name'
-            name='firstName'
-            value={form.firstName}
-            onChange={handleChange}
-            required
-            className='flex-1 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400'
-          />
-          <input
-            type='text'
-            placeholder='Last Name'
-            name='lastName'
-            value={form.lastName}
-            onChange={handleChange}
-            required
-            className='flex-1 border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400'
-          />
-        </div>
-        <input
-          type='email'
-          name='email'
-          placeholder='Email'
-          value={form.email}
-          onChange={handleChange}
-          required
-          className='w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400'
-        />
-        <input
-          type='password'
-          name='password'
-          placeholder='Password (min 6 chars)'
-          value={form.password}
-          onChange={handleChange}
-          required
-          minLength={6}
-          className='w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400'
-        />
-        <button
-          type='submit'
-          disabled={loading}
-          className='w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition'
-        >
-          {loading ? "Registering..." : "Register"}
-        </button>
-      </form>
+    <div className='center-min-h-screen'>
+      <div className='auth-card' role='main' aria-labelledby='register-heading'>
+        <header className='auth-header'>
+          <h1 id='register-heading'>Create account</h1>
+          <p className='auth-sub'>Join us and start exploring.</p>
+        </header>
+        <form className='auth-form' onSubmit={handleSubmit} noValidate>
+          <div className='field-group'>
+            <label htmlFor='email'>Email</label>
+            <input
+              id='email'
+              name='email'
+              type='email'
+              autoComplete='email'
+              placeholder='you@example.com'
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className='grid-2'>
+            <div className='field-group'>
+              <label htmlFor='firstname'>First name</label>
+              <input
+                id='firstname'
+                name='firstname'
+                placeholder='Jane'
+                value={form.firstname}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className='field-group'>
+              <label htmlFor='lastname'>Last name</label>
+              <input
+                id='lastname'
+                name='lastname'
+                placeholder='Doe'
+                value={form.lastname}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+          <div className='field-group'>
+            <label htmlFor='password'>Password</label>
+            <input
+              id='password'
+              name='password'
+              type='password'
+              autoComplete='new-password'
+              placeholder='Create a password'
+              value={form.password}
+              onChange={handleChange}
+              required
+              minLength={6}
+            />
+          </div>
+          <button type='submit' className='primary-btn' disabled={submitting}>
+            {submitting ? "Creating..." : "Create Account"}
+          </button>
+        </form>
+        <p className='auth-alt'>
+          Already have an account? <Link to='/login'>Sign in</Link>
+        </p>
+      </div>
     </div>
   );
 };
