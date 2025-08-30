@@ -55,7 +55,12 @@ const Home = () => {
       }
     );
     console.log("Created new chat:", response.data);
-    dispatch(startNewChat({ title: response.data.chat.title, id: response.data.chat.id }));
+    dispatch(
+      startNewChat({
+        title: response.data.chat.title,
+        id: response.data.chat.id,
+      })
+    );
     setSidebarOpen(false);
   };
 
@@ -70,6 +75,10 @@ const Home = () => {
       .catch((error) => {
         console.error("Error fetching chats:", error);
       });
+    setSocket(io("http://localhost:3000"), {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
   }, []);
 
   const sendMessage = async () => {

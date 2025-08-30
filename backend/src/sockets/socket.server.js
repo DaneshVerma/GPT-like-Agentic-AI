@@ -7,7 +7,15 @@ const { messageModel } = require("../models/message.model");
 const { createMemory, queryMemory } = require("../services/vector.service");
 
 function initSocketServer(httpServer) {
-  const io = new Server(httpServer);
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "http://localhost:5173",
+      methods: ["GET", "POST"],
+      transports: ["websocket", "polling"],
+      credentials: true,
+    },
+    allowEIO3: true,
+  });
 
   //socket auth middelware connection olny establishes when user is authenticated.
   io.use(async (socket, next) => {
@@ -52,8 +60,6 @@ function initSocketServer(httpServer) {
           })
           .sort({ createdAt: -1 })
 
-
-           
           .limit(20)
           .lean()
           .then((docs) => docs.reverse()),
