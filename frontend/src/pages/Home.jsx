@@ -113,7 +113,6 @@ const Home = () => {
 
     console.log("New messages:", newMessages);
 
-    setMessages(newMessages);
     dispatch(setInput(""));
 
     // send to server (matches server "ai-message" listener)
