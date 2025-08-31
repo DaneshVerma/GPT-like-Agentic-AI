@@ -8,7 +8,6 @@ const ChatSidebar = ({
   onNewChat,
   open,
 }) => {
-  console.log("ChatSidebar rendered with chats:", chats);
 
   return (
     <aside

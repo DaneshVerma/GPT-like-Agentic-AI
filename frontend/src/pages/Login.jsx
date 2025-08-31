@@ -16,11 +16,10 @@ const Login = () => {
     e.preventDefault();
     setSubmitting(true);
 
-    console.log(form);
 
     axios
       .post(
-        "/api/auth/login",
+        "api/auth/login",
         {
           email: form.email,
           password: form.password,
@@ -30,7 +29,6 @@ const Login = () => {
         }
       )
       .then((res) => {
-        console.log(res);
         navigate("/");
       })
       .catch((err) => {

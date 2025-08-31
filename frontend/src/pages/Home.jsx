@@ -37,8 +37,8 @@ const Home = () => {
       { title },
       { withCredentials: true }
     );
-    getMessages(response.data.chat.id);
     console.log("Created new chat:", response.data);
+   
     dispatch(
       startNewChat({
         title: response.data.chat.title,
@@ -51,16 +51,15 @@ const Home = () => {
   // fetch chats and connect socket
   useEffect(() => {
     axios
-      .get("/api/chat", { withCredentials: true })
+      .get("api/chat", { withCredentials: true })
       .then((response) => {
-        console.log("Fetched chats:", response.data);
         dispatch(setChats(response.data.chats));
       })
       .catch((error) => {
         console.error("Error fetching chats:", error);
       });
 
-    const connection = io("http://localhost:3000", {
+    const connection = io({
       transports: ["websocket"],
       withCredentials: true,
     });
@@ -83,8 +82,6 @@ const Home = () => {
           content: messagePayload.content,
         },
       ]);
-
-      setMessages(newMessages);
     });
     setSocket(connection);
     return () => {
@@ -94,7 +91,6 @@ const Home = () => {
 
   const sendMessage = async () => {
     const trimmed = input.trim();
-    console.log("Sending message:", trimmed);
     if (!trimmed || !activeChatId || isSending) return;
     if (!socket || socket.disconnected) {
       console.error("Socket not connected yet");
@@ -102,7 +98,6 @@ const Home = () => {
     }
 
     dispatch(sendingStarted());
-
     const newMessages = [
       ...messages,
       {
@@ -110,8 +105,7 @@ const Home = () => {
         content: trimmed,
       },
     ];
-
-    console.log("New messages:", newMessages);
+    setMessages(newMessages);
 
     dispatch(setInput(""));
 
@@ -123,15 +117,13 @@ const Home = () => {
   };
 
   const getMessages = async (id) => {
-    const response = await axios.get(`/api/chat/messages/${id}`);
+    const response = await axios.get(`api/chat/messages/${id}`);
     const allMessages = response.data.messages.map((e) => {
       return {
         type: e.role,
         content: e.content,
       };
     });
-    console.log(allMessages);
-
     setMessages(allMessages);
   };
   return (
