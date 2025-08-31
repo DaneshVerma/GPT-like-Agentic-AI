@@ -1,22 +1,18 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import ChatMobileBar from "../components/chat/ChatMobileBar.jsx";
 import ChatSidebar from "../components/chat/ChatSidebar.jsx";
 import ChatMessages from "../components/chat/ChatMessages.jsx";
 import ChatComposer from "../components/chat/ChatComposer.jsx";
 import "../components/chat/ChatLayout.css";
-import { fakeAIReply } from "../components/chat/aiClient.js";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
+import axios from "../api/api.js";
 import {
-  ensureInitialChat,
   startNewChat,
   selectChat,
   setInput,
   sendingStarted,
   sendingFinished,
-  addUserMessage,
-  addAIMessage,
   setChats,
 } from "../store/chatSlice.js";
 
@@ -26,19 +22,10 @@ const Home = () => {
   const activeChatId = useSelector((state) => state.chat.activeChatId);
   const input = useSelector((state) => state.chat.input);
   const isSending = useSelector((state) => state.chat.isSending);
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [socket, setSocket] = useState(null);
 
-  const [messages, setMessages] = useState([
-    // {
-    //   type: 'user',
-    //   content: 'Hello, how can I help you today?'
-    // },
-    // {
-    //   type: 'ai',
-    //   content: 'Hi there! I need assistance with my account.'
-    // }
-  ]);
+  const [messages, setMessages] = useState([]);
 
   const handleNewChat = async () => {
     let title = window.prompt("Enter chat title:");
@@ -46,13 +33,9 @@ const Home = () => {
     title = title.trim();
     console.log("Creating new chat with title:", title);
     const response = await axios.post(
-      "http://localhost:3000/api/chat",
-      {
-        title,
-      },
-      {
-        withCredentials: true,
-      }
+      "/api/chat",
+      { title },
+      { withCredentials: true }
     );
     console.log("Created new chat:", response.data);
     dispatch(
@@ -64,10 +47,10 @@ const Home = () => {
     setSidebarOpen(false);
   };
 
-  //fatching chats
+  // fetch chats and connect socket
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/chat", { withCredentials: true })
+      .get("/api/chat", { withCredentials: true })
       .then((response) => {
         console.log("Fetched chats:", response.data);
         dispatch(setChats(response.data.chats));
@@ -75,16 +58,38 @@ const Home = () => {
       .catch((error) => {
         console.error("Error fetching chats:", error);
       });
-    setSocket(io("http://localhost:3000"), {
+
+    const connection = io("http://localhost:3000", {
       transports: ["websocket"],
       withCredentials: true,
     });
-  }, []);
+
+    connection.on("connect", () => {
+      console.log("Socket connected:", connection.id);
+    });
+
+    connection.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+   
+
+    setSocket(connection);
+
+    return () => {
+      connection.disconnect();
+    };
+  }, [dispatch]);
 
   const sendMessage = async () => {
     const trimmed = input.trim();
     console.log("Sending message:", trimmed);
     if (!trimmed || !activeChatId || isSending) return;
+    if (!socket || socket.disconnected) {
+      console.error("Socket not connected yet");
+      return;
+    }
+
     dispatch(sendingStarted());
 
     const newMessages = [
@@ -100,34 +105,11 @@ const Home = () => {
     setMessages(newMessages);
     dispatch(setInput(""));
 
+    // send to server (matches server "ai-message" listener)
     socket.emit("ai-message", {
       chat: activeChatId,
       content: trimmed,
     });
-
-    // try {
-    //   const reply = await fakeAIReply(trimmed);
-    //   dispatch(addAIMessage(activeChatId, reply));
-    // } catch {
-    //   dispatch(addAIMessage(activeChatId, 'Error fetching AI response.', true));
-    // } finally {
-    //   dispatch(sendingFinished());
-    // }
-  };
-
-  const getMessages = async (chatId) => {
-    const response = await axios.get(`h/api/chat/messages/${chatId}`, {
-      withCredentials: true,
-    });
-
-    console.log("Fetched messages:", response.data.messages);
-
-    setMessages(
-      response.data.messages.map((m) => ({
-        type: m.role === "user" ? "user" : "ai",
-        content: m.content,
-      }))
-    );
   };
 
   return (
@@ -142,7 +124,6 @@ const Home = () => {
         onSelectChat={(id) => {
           dispatch(selectChat(id));
           setSidebarOpen(false);
-          getMessages(id);
         }}
         onNewChat={handleNewChat}
         open={sidebarOpen}

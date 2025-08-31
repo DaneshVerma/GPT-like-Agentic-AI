@@ -60,7 +60,23 @@ async function login(req, res) {
   });
 }
 
+async function validateToken(req, res) {
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(401).json({ message: "unauthorized" });
+  }
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+    return res.status(200).json({ message: "authorized" });
+  } catch (err) {
+    return res
+      .status(401)
+      .json({ message: "unauthorized", error: err.message });
+  }
+}
+
 module.exports = {
   register,
   login,
+  validateToken,
 };

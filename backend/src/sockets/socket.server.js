@@ -14,10 +14,9 @@ function initSocketServer(httpServer) {
       transports: ["websocket", "polling"],
       credentials: true,
     },
-    allowEIO3: true,
   });
 
-  //socket auth middelware connection olny establishes when user is authenticated.
+  //socket auth middleware
   io.use(async (socket, next) => {
     const cookies = cookie.parse(socket.handshake.headers?.cookie || "");
     if (!cookies.token) {
@@ -36,11 +35,16 @@ function initSocketServer(httpServer) {
   io.on("connection", (socket) => {
     console.log("new socket connection:", socket.id);
 
+    socket.on("hellow", (payload) => {
+      console.log("Received hello message:", payload);
+    });
+
     socket.on("ai-message", async (payload) => {
-      // saving input message to db and convrting message to vectors
+      console.log("Received ai-message:", payload);
+
       const [message, vectores] = await Promise.all([
         messageModel.create({
-          chat: payload.chat,
+          chat: payload.chat, 
           user: socket.user._id,
           content: payload.content,
           role: "user",
@@ -55,11 +59,8 @@ function initSocketServer(httpServer) {
           metadata: {},
         }),
         messageModel
-          .find({
-            chat: payload.chat,
-          })
+          .find({ chat: payload.chat })
           .sort({ createdAt: -1 })
-
           .limit(20)
           .lean()
           .then((docs) => docs.reverse()),
@@ -74,15 +75,11 @@ function initSocketServer(httpServer) {
         }),
       ]);
 
-      // short term memory
-      const stm = chatHistory.map((item) => {
-        return {
-          role: item.role,
-          parts: [{ text: item.content }],
-        };
-      });
+      const stm = chatHistory.map((item) => ({
+        role: item.role,
+        parts: [{ text: item.content }],
+      }));
 
-      // long term memory
       const ltm = [
         {
           role: "user",
@@ -90,19 +87,14 @@ function initSocketServer(httpServer) {
             {
               text: `
           these are some previous messages from the chat use them to generate response
-          ${memory
-            .map((item) => {
-              return item.metadata.text;
-            })
-            .join("\n")}`,
+          ${memory.map((item) => item.metadata.text).join("\n")}`,
             },
           ],
         },
       ];
-      //generating response from ai model
+
       const response = await aiService.generateResponse([...ltm, ...stm]);
 
-      //saving response to db and converting response to vectors
       const [responseMessage, responseVectors] = await Promise.all([
         messageModel.create({
           chat: payload.chat,
@@ -113,7 +105,6 @@ function initSocketServer(httpServer) {
         aiService.generateVector(response),
       ]);
 
-      //saving response to pinecone memory
       await createMemory({
         vectores: responseVectors,
         messageId: responseMessage._id,
@@ -123,7 +114,9 @@ function initSocketServer(httpServer) {
           text: response,
         },
       });
-      //emiting response to client
+
+      // emit back only to this client
+      console.log("Emitting ai-response:", response);
       socket.emit("ai-response", {
         content: response,
         chat: payload.chat,
