@@ -37,6 +37,7 @@ const Home = () => {
       { title },
       { withCredentials: true }
     );
+    getMessages(response.data.chat.id);
     console.log("Created new chat:", response.data);
     dispatch(
       startNewChat({
@@ -123,13 +124,15 @@ const Home = () => {
   };
 
   const getMessages = async (id) => {
-    const response = await axios.get("/api/chat/messages");
+    const response = await axios.get(`/api/chat/messages/${id}`);
     const allMessages = response.data.messages.map((e) => {
       return {
         type: e.role,
         content: e.content,
       };
     });
+    console.log(allMessages);
+
     setMessages(allMessages);
   };
   return (

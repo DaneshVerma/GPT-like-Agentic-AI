@@ -7,6 +7,6 @@ router.post("/", authUserMiddleware, ChatController.createChat);
 
 router.get("/", authUserMiddleware, ChatController.getAllChats);
 
-router.get("/messages", authUserMiddleware, ChatController.getAllmessages);
+router.get("/messages/:chatId", authUserMiddleware, ChatController.getAllmessages);
 
 module.exports = router;

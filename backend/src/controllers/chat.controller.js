@@ -34,8 +34,8 @@ async function getAllChats(req, res) {
 }
 
 async function getAllmessages(req, res) {
-  const user = req.user;
-  const messages = await messageModel.find({ user: user._id });
+  const { chatId } = req.params;
+  const messages = await messageModel.find({ chat: chatId });
   res.status(200).json({
     message: "messsages fetched successfully",
     messages: messages,
