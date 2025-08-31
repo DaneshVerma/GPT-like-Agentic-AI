@@ -14,6 +14,7 @@ import {
   sendingStarted,
   sendingFinished,
   setChats,
+  addAIMessage,
 } from "../store/chatSlice.js";
 
 const Home = () => {
@@ -24,7 +25,6 @@ const Home = () => {
   const isSending = useSelector((state) => state.chat.isSending);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [socket, setSocket] = useState(null);
-
   const [messages, setMessages] = useState([]);
 
   const handleNewChat = async () => {
@@ -72,10 +72,20 @@ const Home = () => {
       console.log("Socket disconnected");
     });
 
-   
+    connection.on("ai-response", (messagePayload) => {
+      dispatch(addAIMessage(activeChatId, messagePayload.content));
+      dispatch(sendingFinished());
+      setMessages((prev) => [
+        ...prev,
+        {
+          type: "ai",
+          content: messagePayload.content,
+        },
+      ]);
 
+      setMessages(newMessages);
+    });
     setSocket(connection);
-
     return () => {
       connection.disconnect();
     };
@@ -112,6 +122,16 @@ const Home = () => {
     });
   };
 
+  const getMessages = async (id) => {
+    const response = await axios.get("/api/chat/messages");
+    const allMessages = response.data.messages.map((e) => {
+      return {
+        type: e.role,
+        content: e.content,
+      };
+    });
+    setMessages(allMessages);
+  };
   return (
     <div className='chat-layout minimal'>
       <ChatMobileBar
@@ -124,6 +144,7 @@ const Home = () => {
         onSelectChat={(id) => {
           dispatch(selectChat(id));
           setSidebarOpen(false);
+          getMessages(id);
         }}
         onNewChat={handleNewChat}
         open={sidebarOpen}

@@ -1,5 +1,5 @@
 const chatModel = require("../models/chat.model");
-
+const messageModel = require("../models/message.model");
 async function createChat(req, res) {
   const { title } = req.body;
   if (!title)
@@ -28,12 +28,22 @@ async function getAllChats(req, res) {
       id: chat._id,
       title: chat.title,
       lastActivity: chat.lastActivity,
-      user:chat.user
+      user: chat.user,
     })),
+  });
+}
+
+async function getAllmessages(req, res) {
+  const user = req.user;
+  const messages = await messageModel.find({ user: user._id });
+  res.status(200).json({
+    message: "messsages fetched successfully",
+    messages: messages,
   });
 }
 
 module.exports = {
   createChat,
-  getAllChats,  
+  getAllChats,
+  getAllmessages,
 };

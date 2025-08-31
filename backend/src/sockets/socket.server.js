@@ -3,7 +3,7 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/user.model");
 const aiService = require("../services/ai.service");
-const { messageModel } = require("../models/message.model");
+const messageModel = require("../models/message.model");
 const { createMemory, queryMemory } = require("../services/vector.service");
 
 function initSocketServer(httpServer) {
@@ -44,7 +44,7 @@ function initSocketServer(httpServer) {
 
       const [message, vectores] = await Promise.all([
         messageModel.create({
-          chat: payload.chat, 
+          chat: payload.chat,
           user: socket.user._id,
           content: payload.content,
           role: "user",
