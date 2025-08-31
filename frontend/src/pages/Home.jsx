@@ -31,13 +31,11 @@ const Home = () => {
     let title = window.prompt("Enter chat title:");
     if (!title) return;
     title = title.trim();
-    console.log("Creating new chat with title:", title);
     const response = await axios.post(
       "/api/chat",
       { title },
       { withCredentials: true }
     );
-    console.log("Created new chat:", response.data);
    
     dispatch(
       startNewChat({
@@ -65,7 +63,7 @@ const Home = () => {
     });
 
     connection.on("connect", () => {
-      console.log("Socket connected:", connection.id);
+      console.log("Socket connected:");
     });
 
     connection.on("disconnect", () => {
