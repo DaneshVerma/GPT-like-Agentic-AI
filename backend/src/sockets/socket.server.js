@@ -41,7 +41,7 @@ function initSocketServer(httpServer) {
 
     socket.on("ai-message", async (payload) => {
       console.log("Received ai-message:", payload);
-
+      // stroring user message in db and generating vectors
       const [message, vectores] = await Promise.all([
         messageModel.create({
           chat: payload.chat,
@@ -51,7 +51,7 @@ function initSocketServer(httpServer) {
         }),
         aiService.generateVector(payload.content),
       ]);
-
+      // querying in pinecon for ltm, storing new vectors in pinecone, fetching recent 20 messages for stm
       const [memory, chatHistory, _ignore] = await Promise.all([
         queryMemory({
           queryVector: vectores,
@@ -74,12 +74,12 @@ function initSocketServer(httpServer) {
           },
         }),
       ]);
-
+      // creating formatted stm
       const stm = chatHistory.map((item) => ({
         role: item.role,
         parts: [{ text: item.content }],
       }));
-
+      // creating formatted ltm
       const ltm = [
         {
           role: "user",
@@ -93,16 +93,25 @@ function initSocketServer(httpServer) {
         },
       ];
 
-      const response = await aiService.generateResponse([...ltm, ...stm]);
+      const stream = await aiService.generateResponse([...ltm, ...stm]);
+      let fullResponse = "";
+      for await (const chunk of stream) {
+        fullResponse += chunk;
+        socket.emit("ai-response-stream", {
+          content: chunk,
+          chat: payload.chat,
+          isFinal: false,
+        });
+      }
 
       const [responseMessage, responseVectors] = await Promise.all([
         messageModel.create({
           chat: payload.chat,
           user: socket.user._id,
-          content: response,
+          content: fullResponse,
           role: "model",
         }),
-        aiService.generateVector(response),
+        aiService.generateVector(fullResponse),
       ]);
 
       await createMemory({
@@ -111,14 +120,14 @@ function initSocketServer(httpServer) {
         metadata: {
           chat: payload.chat,
           user: socket.user._id,
-          text: response,
+          text: fullResponse,
         },
       });
 
-      // emit back only to this client
-      console.log("Emitting ai-response:", response);
+      // emiting final full response
+      console.log("Emitting ai-response:", fullResponse);
       socket.emit("ai-response", {
-        content: response,
+        content: fullResponse,
         chat: payload.chat,
       });
     });
