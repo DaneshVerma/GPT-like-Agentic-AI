@@ -101,7 +101,7 @@ function initSocketServer(httpServer) {
           content: chunk,
           chat: payload.chat,
           isFinal: false,
-        });
+        })
       }
 
       const [responseMessage, responseVectors] = await Promise.all([

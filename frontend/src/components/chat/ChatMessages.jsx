@@ -4,12 +4,13 @@ import './ChatMessages.css';
 
 const ChatMessages = ({ messages, isSending }) => {
   const bottomRef = useRef(null);
+  
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length, isSending]);
   return (
     <div className="messages" aria-live="polite">
       {messages.map((m,index) => (
-        <div key={index} className={`msg msg-${m.type}`}>
-          <div className="msg-role" aria-hidden="true">{m.type === 'user' ? 'You' : 'AI'}</div>
+        <div key={index} className={`msg msg-${m.role}`}>
+          <div className="msg-role" aria-hidden="true">{m.role === 'user' ? 'You' : 'AI'}</div>
           <div className="msg-bubble">{m.content}</div>
           <div className="msg-actions" role="group" aria-label="Message actions">
             <button type="button" aria-label="Copy message" onClick={() => navigator.clipboard.writeText(m.content)}>

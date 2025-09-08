@@ -1,9 +1,9 @@
 import { createSlice, nanoid } from "@reduxjs/toolkit";
 
-// helpers
-const createEmptyChat = (title) => ({
-  id: nanoid(),
-  title: title || "New Chat",
+// helper
+const createEmptyChat = (id = nanoid(), title = "New Chat") => ({
+  id,
+  title,
   messages: [],
 });
 
@@ -26,8 +26,11 @@ const chatSlice = createSlice({
     startNewChat: {
       reducer(state, action) {
         const { id, title } = action.payload;
-        state.chats.unshift({ id, title: title || "New Chat", messages: [] });
+        state.chats.unshift(createEmptyChat(id, title));
         state.activeChatId = id;
+      },
+      prepare({ id = nanoid(), title }) {
+        return { payload: { id, title: title || "New Chat" } };
       },
     },
     selectChat(state, action) {
@@ -43,18 +46,31 @@ const chatSlice = createSlice({
       state.isSending = false;
     },
     setChats(state, action) {
-      state.chats = action.payload;
+      // make sure each chat has messages array
+      state.chats = action.payload.map((c) => ({
+        ...c,
+        messages: c.messages || [],
+      }));
     },
+
+    // 🟢 USER MESSAGE
     addUserMessage: {
       reducer(state, action) {
         const { chatId, message } = action.payload;
-        const chat = state.chats.find((c) => c.id === chatId);
-        if (!chat) return;
+        let chat = state.chats.find((c) => c.id === chatId);
+
+        // auto-create chat if missing
+        if (!chat) {
+          chat = createEmptyChat(chatId);
+          state.chats.unshift(chat);
+        }
+
         if (chat.messages.length === 0) {
           chat.title =
             message.content.slice(0, 40) +
             (message.content.length > 40 ? "…" : "");
         }
+
         chat.messages.push(message);
       },
       prepare(chatId, content) {
@@ -66,11 +82,25 @@ const chatSlice = createSlice({
         };
       },
     },
+
+    // 🟣 AI MESSAGE
     addAIMessage: {
       reducer(state, action) {
         const { chatId, message } = action.payload;
-        const chat = state.chats.find((c) => c.id === chatId);
-        if (!chat) return;
+        let chat = state.chats.find((c) => c.id === chatId);
+
+        // auto-create chat if missing
+        if (!chat) {
+          chat = createEmptyChat(chatId);
+          state.chats.unshift(chat);
+        }
+
+        if (chat.messages.length === 0) {
+          chat.title =
+            message.content.slice(0, 40) +
+            (message.content.length > 40 ? "…" : "");
+        }
+
         chat.messages.push(message);
       },
       prepare(chatId, content, error = false) {
@@ -88,6 +118,18 @@ const chatSlice = createSlice({
         };
       },
     },
+
+    // ✍️ Update last AI message (for streaming)
+    updateLastAIMessage(state, action) {
+      const { chatId, content } = action.payload;
+      const chat = state.chats.find((c) => c.id === chatId);
+      if (!chat || chat.messages.length === 0) return;
+
+      const lastMessage = chat.messages[chat.messages.length - 1];
+      if (lastMessage.role === "ai" && !lastMessage.error) {
+        lastMessage.content += content;
+      }
+    },
   },
 });
 
@@ -100,6 +142,7 @@ export const {
   sendingFinished,
   addUserMessage,
   addAIMessage,
+  updateLastAIMessage,
   setChats,
 } = chatSlice.actions;
 
