@@ -35,9 +35,6 @@ function initSocketServer(httpServer) {
   io.on("connection", (socket) => {
     console.log("new socket connection:", socket.id);
 
-    socket.on("hellow", (payload) => {
-      console.log("Received hello message:", payload);
-    });
 
     socket.on("ai-message", async (payload) => {
       console.log("Received ai-message:", payload);

@@ -54,7 +54,7 @@ const Home = () => {
       .then((res) => dispatch(setChats(res.data.chats)))
       .catch((err) => console.error("Error fetching chats:", err));
 
-    const socket = io("http://localhost:3000", {
+    const socket = io({
       transports: ["websocket"],
       withCredentials: true,
     });
@@ -136,13 +136,15 @@ const Home = () => {
       <main className='chat-main' role='main'>
         {messages.length === 0 && (
           <div className='chat-welcome' aria-hidden='true'>
-            <div className='chip'>Early Preview</div>
-            <h1>ChatGPT Clone</h1>
+            <h1>I'm HeyAurora</h1>
             <p>
-              Ask anything. Paste text, brainstorm ideas, or get quick
+              Ask me anything. Paste text, brainstorm ideas, or get quick
               explanations. Your chats stay in the sidebar so you can pick up
               where you left off.
             </p>
+            <footer>
+              [<i>&copy; Danesh</i>]
+            </footer>
           </div>
         )}
 

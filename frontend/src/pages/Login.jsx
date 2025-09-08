@@ -16,7 +16,6 @@ const Login = () => {
     e.preventDefault();
     setSubmitting(true);
 
-
     axios
       .post(
         "api/auth/login",
@@ -32,6 +31,7 @@ const Login = () => {
         navigate("/");
       })
       .catch((err) => {
+        window.alert("Login failed. invalid credentials");
         console.error(err);
       })
       .finally(() => {
