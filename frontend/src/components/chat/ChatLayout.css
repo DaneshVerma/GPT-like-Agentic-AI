@@ -1,53 +1,76 @@
-/* Minimal monochrome variant (applied when parent has .minimal) */
+/* Base layout */
+.chat-layout {
+    display: flex;
+    height: 100dvh;
+    background: var(--color-bg);
+    font-size: var(--text-base);
+}
+
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100dvh;
+    padding-top: calc(52px + env(safe-area-inset-top, 0));
+    position: relative;
+}
+
+@media (min-width: 960px) {
+    .chat-main {
+        padding-top: 0;
+    }
+}
+
+@media (min-width: 960px) {
+    .chat-layout {
+        flex-direction: row;
+    }
+}
+
+@media (max-width: 959px) {
+    .chat-layout {
+        flex-direction: column;
+    }
+}
+
+/* Minimal blue + gray variant */
 .chat-layout.minimal {
-    --color-bg: #0d1117;         /* dark gray background */
-    --color-bg-alt: #111827;     /* gray-blue alt background */
-    --color-surface: #1e3a8a;    /* blue (cards, bubbles) */
-    --color-border: #1f2937;     /* dark gray border */
-    --color-border-alt: #374151; /* lighter gray border alternative */
-    --color-border-strong: #60a5fa; /* bright blue highlight border */
-
-    --color-surface-dark: #0f172a7e; /* dark gray-blue overlay */
-    --color-surface-mid: #1e293b;    /* grayish blue surface */
-    --color-surface-mid-hover: #2b3b55; /* hover gray-blue */
-    --color-surface-light: #2c3e50;     /* lighter gray-blue surface */
-    --color-surface-light-hover: #3b4a63; /* hover lighter surface */
-
+    --color-bg: #0d1117;          /* dark gray background */
+    --color-bg-alt: #111827;      /* gray-blue alt background */
+    --color-surface: #1e3a8a;     /* dark blue surface */
+    --color-border: #1f2937;      /* gray border */
     --color-text: #e5e7eb;        /* light gray text */
-    --color-text-strong: #ffffff; /* pure white for contrast */
     --color-text-muted: #9ca3af;  /* muted gray */
-    --color-text-subtle: #6b7280; /* subtle gray */
-
-    --color-accent: #3b82f6;      /* vivid blue accent */
-    --color-danger: #ef4444;      /* red for errors */
+    --color-accent: #3b82f6;      /* blue accent */
 }
 
 .chat-layout.minimal {
-    background: linear-gradient(180deg, 0%, #050505 60%, #050505 100%);
+    background: linear-gradient(180deg, #0d1117 0%, #111827 60%, #1e293b 100%);
     color: var(--color-text);
 }
 
 .chat-layout.minimal .chat-main {
-  background: transparent;
+    background: transparent;
 }
 
 .chat-layout.minimal .chat-mobile-bar {
-    background: var(--color-bg-strong);
+    background: var(--color-bg);
     border-color: var(--color-border);
 }
 
 .chat-layout.minimal .chat-icon-btn {
-    background: var(--color-bg-dark);
-    border-color: var(--color-border);
+    background: var(--color-bg-alt);
+    border-color: #374151;
     color: var(--color-text);
 }
 
 .chat-layout.minimal .chat-icon-btn:hover {
-    background: var(--color-bg-dark-hover);
+    background: #1f2937;
 }
 
 .chat-layout.minimal .chat-sidebar {
-    background: var(--color-bg-strong);
+    background: var(--color-bg);
     border-color: var(--color-border);
 }
 
@@ -56,63 +79,105 @@
 }
 
 .chat-layout.minimal .small-btn {
-    background: var(--color-bg-alt2);
-    border-color: var(--color-border-alt);
+    background: #1e293b;
+    border-color: #374151;
 }
 
 .chat-layout.minimal .small-btn:hover {
-    background: var(--color-bg-alt2-hover);
+    background: #2b3b55;
 }
 
 .chat-layout.minimal .chat-list-item {
-    background: var(--color-bg-dark);
-    border-color: var(--color-bg-alt);
+    background: var(--color-bg-alt);
+    border-color: #2c3e50;
 }
 
 .chat-layout.minimal .chat-list-item:hover {
-    background: var(--color-bg-dark-hover);
+    background: #2b3b55;
 }
 
 .chat-layout.minimal .chat-list-item.active {
-    border-color: var(--color-border-strong);
-    box-shadow: 0 0 0 1px var(--color-border-strong);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-accent);
 }
 
 .chat-layout.minimal .msg-bubble {
-    background: var(--color-bg-dark);
+    background: var(--color-bg-alt);
     border-color: var(--color-border);
     color: var(--color-text);
 }
 
 .chat-layout.minimal .msg-user .msg-bubble {
-    background: var(--color-bg-alt2);
-    border-color: var(--color-border-alt);
-    color: var(--color-text-alt);
+    background: #1e293b;
+    border-color: #374151;
+    color: #ffffff;
 }
 
 .chat-layout.minimal .msg-role {
-    color: var(--color-role);
+    color: #6b7280;
 }
 
 .chat-layout.minimal .msg-error .msg-bubble {
-    border-color: var(--color-error);
-    color: var(--color-error);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* Welcome (empty state) */
+.chat-welcome {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    pointer-events: none;
+    text-align: center;
+}
+
+.chat-welcome h1 {
+    font-size: 2.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+    background: linear-gradient(90deg, #dbeafe, #9ca3af);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.chat-welcome p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #9ca3af;
+    max-width: 420px;
+    line-height: 1.4;
+}
+
+.chat-welcome .chip {
+    background: #1f2937;
+    border: 1px solid #374151;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #9ca3af;
 }
 
 /* Scrollbar minimal styling (webkit) */
 .chat-layout.minimal .messages::-webkit-scrollbar {
-  width: 10px;
+    width: 10px;
 }
 
 .chat-layout.minimal .messages::-webkit-scrollbar-track {
-    background: var(--color-bg-strong);
+    background: var(--color-bg);
 }
 
 .chat-layout.minimal .messages::-webkit-scrollbar-thumb {
-    background: var(--color-scrollbar-thumb);
+    background: var(--color-border);
     border-radius: 6px;
 }
 
 .chat-layout.minimal .messages::-webkit-scrollbar-thumb:hover {
-    background: var(--color-scrollbar-thumb-hover);
+    background: #374151;
 }

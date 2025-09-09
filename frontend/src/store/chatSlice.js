@@ -130,6 +130,12 @@ const chatSlice = createSlice({
         lastMessage.content += content;
       }
     },
+    clearMessages: {
+      reducer(state, action) {
+        const chat = state.chats.find((c) => c.id === action.payload);
+        if (chat) chat.messages = [];
+      },
+    },
   },
 });
 
@@ -144,6 +150,7 @@ export const {
   addAIMessage,
   updateLastAIMessage,
   setChats,
+  clearMessages,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

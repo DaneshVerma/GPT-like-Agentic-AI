@@ -16,6 +16,7 @@ import {
   setChats,
   addAIMessage,
   addUserMessage,
+  clearMessages,
 } from "../store/chatSlice.js";
 
 const Home = () => {
@@ -24,11 +25,9 @@ const Home = () => {
   const activeChatId = useSelector((state) => state.chat.activeChatId);
   const input = useSelector((state) => state.chat.input);
   const isSending = useSelector((state) => state.chat.isSending);
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [streamingMsg, setStreamingMsg] = useState(""); // 🟢 local streaming state
+  const [streamingMsg, setStreamingMsg] = useState("");
   const socketRef = useRef(null);
-
   const activeChat = chats.find((c) => c.id === activeChatId);
   const messages = activeChat?.messages || [];
 
@@ -59,7 +58,7 @@ const Home = () => {
       .then((res) => dispatch(setChats(res.data.chats)))
       .catch((err) => console.error("Error fetching chats:", err));
 
-    const socket = io({
+    const socket = io("http://localhost:3000", {
       transports: ["websocket"],
       withCredentials: true,
     });
@@ -90,6 +89,12 @@ const Home = () => {
     return () => socket.disconnect();
   }, [dispatch, activeChatId]);
 
+  useEffect(() => {
+    if (activeChatId) {
+      getMessages(activeChatId);
+    }
+  }, [activeChatId]);
+
   const sendMessage = () => {
     const trimmed = input.trim();
     if (!trimmed || !activeChatId || isSending) return;
@@ -110,6 +115,7 @@ const Home = () => {
 
   const getMessages = async (id) => {
     const { data } = await axios.get(`/api/chat/messages/${id}`);
+    dispatch(clearMessages(id)); // clear old messages when switching chat
     data.messages.forEach((msg) => {
       if (msg.role === "user") {
         dispatch(addUserMessage(id, msg.content));
@@ -131,8 +137,8 @@ const Home = () => {
         activeChatId={activeChatId}
         onSelectChat={(id) => {
           dispatch(selectChat(id));
+          getMessages(id); // <-- always fetch messages on click
           setSidebarOpen(false);
-          getMessages(id);
         }}
         onNewChat={handleNewChat}
         open={sidebarOpen}
@@ -141,7 +147,6 @@ const Home = () => {
       <main className='chat-main' role='main'>
         {messages.length === 0 && (
           <div className='chat-welcome' aria-hidden='true'>
-            <div className='chip'>Early Preview</div>
             <h1>I'm HeyAroura</h1>
             <p>
               Ask me anything. Paste text, brainstorm ideas, or get quick
