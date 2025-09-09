@@ -44,10 +44,15 @@ const Home = () => {
 
     dispatch(
       startNewChat({
-        title: response.data.chat.title,
-        id: response.data.chat.id,
+        title: data.chat.title,
+        id: data.chat.id,
       })
     );
+    dispatch(selectChat(data.chat.id));
+    setSidebarOpen(false);
+    if (inputRef.current) {
+      inputRef.current.focus(); // focus on input
+    }
     setSidebarOpen(false);
   };
 
@@ -58,7 +63,7 @@ const Home = () => {
       .then((res) => dispatch(setChats(res.data.chats)))
       .catch((err) => console.error("Error fetching chats:", err));
 
-    const socket = io("http://localhost:3000", {
+    const socket = io( {
       transports: ["websocket"],
       withCredentials: true,
     });
