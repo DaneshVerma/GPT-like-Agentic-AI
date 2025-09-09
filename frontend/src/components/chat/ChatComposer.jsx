@@ -39,7 +39,7 @@
             <textarea
               ref={textareaRef}
               className='composer-input'
-              placeholder='Message ChatGPT…'
+              placeholder='Message HeyAroura...'
               aria-label='Message'
               value={input}
               onChange={(e) => setInput(e.target.value)}
