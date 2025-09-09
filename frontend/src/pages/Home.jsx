@@ -30,7 +30,7 @@ const Home = () => {
   const socketRef = useRef(null);
   const activeChat = chats.find((c) => c.id === activeChatId);
   const messages = activeChat?.messages || [];
-
+  const inputRef = useRef(null);
   // create new chat
   const handleNewChat = async () => {
     const title = window.prompt("Enter chat title:")?.trim();
@@ -137,8 +137,11 @@ const Home = () => {
         activeChatId={activeChatId}
         onSelectChat={(id) => {
           dispatch(selectChat(id));
-          getMessages(id); // <-- always fetch messages on click
+          getMessages(id); // fetch messages on chat click
           setSidebarOpen(false);
+          if (inputRef.current) {
+            inputRef.current.focus(); // focus on input
+          }
         }}
         onNewChat={handleNewChat}
         open={sidebarOpen}
@@ -176,6 +179,7 @@ const Home = () => {
             setInput={(v) => dispatch(setInput(v))}
             onSend={sendMessage}
             isSending={isSending}
+            inputRef={inputRef}
           />
         )}
       </main>

@@ -2,12 +2,11 @@
   import "./ChatComposer.css";
 
   // NOTE: Public API (props) kept identical for drop-in upgrade
-  const ChatComposer = ({ input, setInput, onSend, isSending }) => {
-    const textareaRef = useRef(null);
+  const ChatComposer = ({ input, setInput, onSend, isSending , inputRef }) => {
 
     // Auto-grow textarea height up to max-height
     useLayoutEffect(() => {
-      const el = textareaRef.current;
+      const el = inputRef.current;
       if (!el) return;
       el.style.height = "auto";
       el.style.height = Math.min(el.scrollHeight, 320) + "px";
@@ -37,7 +36,7 @@
         >
           <div className='composer-field'>
             <textarea
-              ref={textareaRef}
+              ref={inputRef}
               className='composer-input'
               placeholder='Message HeyAroura...'
               aria-label='Message'
