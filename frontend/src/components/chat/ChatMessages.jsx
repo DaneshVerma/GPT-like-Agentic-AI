@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import "./ChatMessages.css";
-
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 const ChatMessages = ({ messages, isSending }) => {
   const bottomRef = useRef(null);
 
@@ -14,7 +15,13 @@ const ChatMessages = ({ messages, isSending }) => {
           <div className='msg-role' aria-hidden='true'>
             {m.role === "user" ? "You" : "AI"}
           </div>
-          <div className='msg-bubble'>{m.content}</div>
+          <div className='msg-bubble'>
+            {m.role === "ai" ? (
+              <ReactMarkdown children={m.content} remarkPlugins={[remarkGfm]} />
+            ) : (
+              <span>{m.content}</span>
+            )}
+          </div>{" "}
           <div
             className='msg-actions'
             role='group'
