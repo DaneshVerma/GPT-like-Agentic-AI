@@ -43,7 +43,12 @@ const Home = () => {
       { withCredentials: true }
     );
 
-    dispatch(startNewChat({ id: data.chat.id, title: data.chat.title }));
+    dispatch(
+      startNewChat({
+        title: response.data.chat.title,
+        id: response.data.chat.id,
+      })
+    );
     setSidebarOpen(false);
   };
 
@@ -136,7 +141,8 @@ const Home = () => {
       <main className='chat-main' role='main'>
         {messages.length === 0 && (
           <div className='chat-welcome' aria-hidden='true'>
-            <h1>I'm HeyAurora</h1>
+            <div className='chip'>Early Preview</div>
+            <h1>I'm HeyAroura</h1>
             <p>
               Ask me anything. Paste text, brainstorm ideas, or get quick
               explanations. Your chats stay in the sidebar so you can pick up
